@@ -25,9 +25,6 @@
       --shadow-card: 0 25px 60px rgba(0,0,0,.4);
       --orb-blue: rgba(56,189,248,.08);
       --orb-pink: rgba(244,114,182,.06);
-      --backdrop-overlay: rgba(8, 15, 26, 0.72);
-      --surface-overlay: rgba(12, 18, 30, 0.82);
-      --surface-border: rgba(148, 163, 184, 0.28);
     }
 
     /* ── Theme: Light ──────────────────────────────────── */
@@ -47,9 +44,6 @@
       --shadow-card: 0 25px 60px rgba(0,0,0,.1);
       --orb-blue: rgba(14,165,233,.06);
       --orb-pink: rgba(219,39,119,.04);
-      --backdrop-overlay: rgba(240, 244, 255, 0.55);
-      --surface-overlay: rgba(255, 255, 255, 0.78);
-      --surface-border: rgba(203, 213, 225, 0.85);
     }
 
     /* ── Smooth theme transitions ──────────────────────── */
@@ -65,10 +59,7 @@
 
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background:
-        linear-gradient(180deg, var(--backdrop-overlay), rgba(8, 15, 26, 0.58)),
-        url('https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=1600&q=80') center center / cover fixed no-repeat,
-        var(--bg);
+      background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
@@ -77,15 +68,6 @@
       justify-content: center;
       overflow-x: hidden;
       position: relative;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at top, rgba(125,211,252,0.12), transparent 45%);
-      pointer-events: none;
-      z-index: 0;
     }
 
     /* ── Theme Toggle ──────────────────────────────────── */
@@ -170,16 +152,14 @@
       padding: 2rem;
     }
     .card {
-      background: var(--surface-overlay);
-      border: 1px solid var(--surface-border);
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 24px;
       padding: 3rem 2.5rem;
       text-align: center;
       box-shadow: var(--shadow-card);
       position: relative;
       overflow: hidden;
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
     }
     .card::before {
       content: '';
