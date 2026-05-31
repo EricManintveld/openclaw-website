@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koala Merch Store · Sam's Playground</title>
+  <script src="theme.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root,
+    [data-theme="dark"] {
+      --bg: #0f0f1a;
+      --card: #1a1a2e;
+      --card-soft: rgba(255,255,255,0.03);
+      --accent: #7dd3fc;
+      --accent-glow: #38bdf8;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #334155;
+      --green: #4ade80;
+      --pink: #f472b6;
+      --yellow: #facc15;
+      --purple: #a78bfa;
+      --toggle-bg: rgba(255,255,255,.07);
+      --toggle-border: rgba(255,255,255,.12);
+      --shadow-card: 0 25px 60px rgba(0,0,0,.4);
+      --orb-blue: rgba(56,189,248,.08);
+      --orb-pink: rgba(244,114,182,.06);
+      --price-bg: rgba(74,222,128,0.12);
+      --hero-glow: rgba(125,211,252,0.18);
+      color-scheme: dark;
+    }
+
+    [data-theme="light"] {
+      --bg: #f0f4ff;
+      --card: #ffffff;
+      --card-soft: rgba(15,23,42,0.03);
+      --accent: #0284c7;
+      --accent-glow: #0ea5e9;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --green: #16a34a;
+      --pink: #db2777;
+      --yellow: #ca8a04;
+      --purple: #7c3aed;
+      --toggle-bg: rgba(0,0,0,.05);
+      --toggle-border: rgba(0,0,0,.1);
+      --shadow-card: 0 25px 60px rgba(0,0,0,.1);
+      --orb-blue: rgba(14,165,233,.06);
+      --orb-pink: rgba(219,39,119,.04);
+      --price-bg: rgba(22,163,74,0.1);
+      --hero-glow: rgba(14,165,233,0.16);
+      color-scheme: light;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top, var(--hero-glow), transparent 26%), var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.25rem;
+      z-index: 999;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--toggle-bg);
+      border: 1px solid var(--toggle-border);
+      color: var(--text);
+      font-size: 1.3rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.3s ease, background 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease;
+    }
+    .theme-toggle:hover { transform: scale(1.08); box-shadow: 0 4px 20px rgba(0,0,0,.15); }
+    .theme-toggle .icon-sun,
+    .theme-toggle .icon-moon { position: absolute; transition: opacity 0.3s ease, transform 0.4s ease; }
+    [data-theme="dark"] .theme-toggle .icon-sun { opacity: 1; transform: rotate(0deg) scale(1); }
+    [data-theme="dark"] .theme-toggle .icon-moon { opacity: 0; transform: rotate(90deg) scale(0.6); }
+    [data-theme="light"] .theme-toggle .icon-sun { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+    [data-theme="light"] .theme-toggle .icon-moon { opacity: 1; transform: rotate(0deg) scale(1); }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb.blue { width: 420px; height: 420px; background: var(--orb-blue); top: -120px; right: -120px; }
+    .orb.pink { width: 320px; height: 320px; background: var(--orb-pink); bottom: -90px; left: -90px; }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 5rem 1.5rem 4rem;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .back-link,
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .back-link:hover,
+    .nav-link:hover { text-decoration: underline; }
+
+    .hero,
+    .section-card,
+    .product-card,
+    .highlight-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .section-card::before,
+    .product-card::before,
+    .highlight-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(125,211,252,0.08), transparent 42%),
+                  radial-gradient(circle at bottom right, rgba(244,114,182,0.08), transparent 38%);
+      pointer-events: none;
+    }
+
+    .hero {
+      padding: 3rem;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: clamp(2.3rem, 4vw, 3.7rem);
+      line-height: 1.03;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-copy,
+    .section-copy,
+    .highlight-copy,
+    .tagline,
+    .meta {
+      color: var(--muted);
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-copy { max-width: 680px; font-size: 1.08rem; }
+
+    .pill-row,
+    .category-row,
+    .product-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pill,
+    .category-pill,
+    .meta-pill {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.48rem 0.85rem;
+      font-size: 0.85rem;
+      background: var(--card-soft);
+    }
+
+    .hero-panel {
+      display: grid;
+      gap: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-panel {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-content: start;
+    }
+
+    .highlight-card,
+    .product-card {
+      padding: 1.35rem;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .highlight-card h2,
+    .section-card h2 {
+      font-size: 1.45rem;
+      margin-bottom: 0.65rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .highlight-card strong,
+    .price {
+      color: var(--text);
+    }
+
+    .section-card {
+      padding: 2rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .product-card {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-height: 100%;
+    }
+
+    .product-art {
+      min-height: 190px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(2.8rem, 6vw, 4.4rem);
+      background: linear-gradient(135deg, rgba(125,211,252,0.18), rgba(167,139,250,0.12));
+      position: relative;
+      overflow: hidden;
+    }
+    .product-art::after {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border-radius: 18px;
+      border: 1px dashed rgba(255,255,255,0.14);
+      opacity: 0.75;
+    }
+
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.9rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .product-header h3 {
+      font-size: 1.25rem;
+      line-height: 1.2;
+    }
+
+    .price {
+      font-size: 1.15rem;
+      font-weight: 800;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: var(--price-bg);
+      white-space: nowrap;
+    }
+
+    .primary-link,
+    .ghost-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.2rem;
+      border-radius: 999px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .primary-link {
+      background: linear-gradient(135deg, var(--accent), var(--accent-glow));
+      color: #0f172a;
+      box-shadow: 0 10px 30px rgba(56, 189, 248, 0.25);
+    }
+    .primary-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px rgba(56, 189, 248, 0.3);
+    }
+
+    .ghost-link {
+      color: var(--text);
+      border: 1px solid var(--border);
+      background: transparent;
+    }
+    .ghost-link:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 0.9rem;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .note-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 1.25rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .shop-note {
+      padding: 1.25rem;
+      border-radius: 22px;
+      border: 1px dashed var(--border);
+      background: var(--card-soft);
+    }
+
+    .shop-note h3 {
+      margin-bottom: 0.5rem;
+      font-size: 1.05rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-note {
+      margin-top: 1rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .note-grid,
+      .products-grid { grid-template-columns: 1fr; }
+      .hero-panel { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .page { padding: 4.5rem 1rem 3rem; }
+      .hero,
+      .section-card { padding: 1.5rem; }
+      .hero-panel { grid-template-columns: 1fr; }
+      .product-header { flex-direction: column; }
+      .topbar { align-items: flex-start; }
+      h1 { font-size: 2.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" title="Switch to light mode">
+    <span class="icon-sun">☀️</span>
+    <span class="icon-moon">🌙</span>
+  </button>
+
+  <div class="orb blue"></div>
+  <div class="orb pink"></div>
+
+  <main class="page">
+    <div class="topbar">
+      <a class="back-link" href="index.html">← Back to home</a>
+      <a class="nav-link" href="how-it-works.html">How the site gets built →</a>
+    </div>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">🐨 Mock store · no checkout required</div>
+        <h1>Koala merch for the internet’s coziest builder.</h1>
+        <p class="hero-copy">A playful gallery of pretend products from Sam’s Playground — made for browsing, smiling, and maybe imagining your dream koala starter pack. Prices are included, but this page is just a mock storefront with no payment flow.</p>
+        <div class="pill-row" style="margin-top:1.25rem;">
+          <span class="pill">🌿 Plushies & desk friends</span>
+          <span class="pill">🧢 Apparel & accessories</span>
+          <span class="pill">☕ Home office essentials</span>
+        </div>
+        <div class="cta-row">
+          <a class="primary-link" href="#catalog">Browse the merch →</a>
+          <a class="ghost-link" href="agents.html">Meet the builders →</a>
+        </div>
+        <p class="footer-note">Everything here is intentionally fake — the fun is in the presentation.</p>
+      </div>
+
+      <div class="hero-panel">
+        <article class="highlight-card">
+          <h2>8 cozy items</h2>
+          <p class="highlight-copy">A tidy product gallery with names, quick descriptions, and prices that feel believable for a mock shop.</p>
+        </article>
+        <article class="highlight-card">
+          <h2>Friendly categories</h2>
+          <p class="highlight-copy">Split across wearables, desk goodies, and soft companions so the page feels like a real boutique.</p>
+        </article>
+        <article class="highlight-card">
+          <h2>Made to match</h2>
+          <p class="highlight-copy">The layout borrows the same dreamy gradients and glassy cards used across Sam’s Playground.</p>
+        </article>
+        <article class="highlight-card">
+          <h2>Zero checkout pressure</h2>
+          <p class="highlight-copy">No cart, no forms, no payment UI — just an inviting mockup that shows the concept clearly.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-card" id="catalog">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Gallery</div>
+          <h2>Koala merch shelf</h2>
+          <p class="section-copy">Pick your imaginary favorites. Each card shows a short description and a mock price for the concept.</p>
+        </div>
+        <div class="category-row">
+          <span class="category-pill">All items</span>
+          <span class="category-pill">Best seller energy</span>
+          <span class="category-pill">Giftable</span>
+        </div>
+      </div>
+
+      <div class="products-grid">
+        <article class="product-card">
+          <div class="product-art" aria-hidden="true">🧸🐨</div>
+          <div class="product-header">
+            <div>
+              <h3>Cuddle Koala Plush</h3>
+              <p class="tagline">A super-soft desk buddy with a tiny eucalyptus leaf stitched on the paw.</p>
+            </div>
+            <div class="price">$24</div>
+          </div>
+          <div class="product-meta">
+            <span class="meta-pill">Plush</span>
+            <span class="meta-pill">Desk favorite</span>
+            <span class="meta-pill">Gift-ready</span>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-art" aria-hidden="true">👕✨</div>
+          <div class="product-header">
+            <div>
+              <h3>Playground Logo Tee</h3>
+              <p class="tagline">A comfy shirt with a clean Sam’s Playground mark and a cheerful koala on the back.</p>
+            </div>
+            <div class="price">$32</div>
+          </div>
+          <div class="product-meta">
+            <span class="meta-pill">Apparel</span>
+            <span class="meta-pill">Everyday wear</span>
+            <span class="meta-pill">Soft cotton</span>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-art" aria-hidden="true">☕🌿</div>
+          <div class="product-header">
+            <div>
+              <h3>Eucalyptus Debug Mug</h3>
+              <p class="tagline">A ceramic mug for late-night fixes, with a koala peeking over a steaming cup.</p>
+            </div>
+            <div class="price">$18</div>
+          </div>
+          <div class="product-meta">
+            <span class="meta-pill">Kitchen</span>
+            <span class="meta-pill">WFH staple</span>
+            <span class="meta-pill">11 oz</span>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-art" aria-hidden="true">🧢🐾</div>
+          <div class="product-header">
+            <div>
+              <h3>Builder Koala Cap</h3>
+              <p class="tagline">A curved-brim cap embroidered with a tiny koala paw and bright accent stitching.</p>
+            </div>
+            <div class="price">$26</div>
+          </div>
+          <div class="product-meta">
+            <span class="meta-pill">Accessories</span>
+            <span class="meta-pill">Adjustable fit</span>
+            <span class="meta-pill">Outdoor ready</span>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-art" aria-hidden="true">💻🐨</div>
+          <div class="product-header">
+            <div>
+              <h3>Sticker Pack: Ship It</h3>
+              <p class="tagline">A bundle of glossy stickers featuring coding koalas, leaves, and tiny launch rockets.</p>
+            </div>
+            <div class="price">$12</div>
+          </div>
+          <div class="product-meta">
+            <span class="meta-pill">Stickers</span>
+            <span class="meta-pill">Laptop-safe</span>
+            <span class="meta-pill">5 pack</span>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-art" aria-hidden="true">🛏️🌙</div>
+          <div class="product-header">
+            <div>
+              <h3>Nap Mode Throw Blanket</h3>
+              <p class="tagline">A fuzzy blanket for recharge time, patterned with sleepy koalas and pastel clouds.</p>
+            </div>
+            <div class="price">$38</div>
+          </div>
+          <div class="product-meta">
+            <span class="meta-pill">Home</span>
+            <span class="meta-pill">Ultra cozy</span>
+            <span class="meta-pill">Limited run vibe</span>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-art" aria-hidden="true">📓🍃</div>
+          <div class="product-header">
+            <div>
+              <h3>Leaf Notes Journal</h3>
+              <p class="tagline">A dotted notebook for sketches, ideas, and unusually good koala-related plans.</p>
+            </div>
+            <div class="price">$16</div>
+          </div>
+          <div class="product-meta">
+            <span class="meta-pill">Stationery</span>
+            <span class="meta-pill">Dotted pages</span>
+            <span class="meta-pill">Desk setup</span>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-art" aria-hidden="true">🧦⚡</div>
+          <div class="product-header">
+            <div>
+              <h3>Launch Day Socks</h3>
+              <p class="tagline">Bright socks with tiny rockets, stars, and a koala who clearly believes in shipping fast.</p>
+            </div>
+            <div class="price">$14</div>
+          </div>
+          <div class="product-meta">
+            <span class="meta-pill">Wearables</span>
+            <span class="meta-pill">Stretch knit</span>
+            <span class="meta-pill">Mood boost</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Store notes</div>
+          <h2>What this mock page includes</h2>
+          <p class="section-copy">Enough detail to feel like a real storefront concept, without any purchasing flow or backend complexity.</p>
+        </div>
+      </div>
+
+      <div class="note-grid">
+        <div class="shop-note">
+          <h3>Included</h3>
+          <p class="meta">A merch gallery, pricing, category-style labels, themed visuals, and calls to action that keep the page feeling polished and intentional.</p>
+        </div>
+        <div class="shop-note">
+          <h3>Intentionally omitted</h3>
+          <p class="meta">No cart, checkout, login, inventory logic, or payment integration. This is a visual demo only, exactly as requested.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
