@@ -18,7 +18,7 @@ _No items in progress._
 
 ## 👀 Awaiting Approval
 
-_No items awaiting approval._
+- [#3] Add a dark mode toggle (@feature/dark-mode-toggle)
 
 ---
 

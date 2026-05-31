@@ -40,13 +40,19 @@ def read_board():
     sections = {}
     current_section = None
     for line in content.split("\n"):
+        # Stop at the final footer section
+        if line.startswith("## How It Works"):
+            break
         for col_key, col_name in COLUMNS.items():
             if f"## {col_name}" in line:
                 current_section = col_key
                 sections[current_section] = []
                 break
         else:
-            if current_section and line.strip():
+            if line.startswith("## "):
+                current_section = None
+                continue
+            if current_section and line.strip() and line.startswith("- "):
                 sections.setdefault(current_section, []).append(line)
 
     return sections
@@ -106,15 +112,25 @@ def write_board(sections):
     with open(BOARD_PATH) as f:
         content = f.read()
 
-    header_end = 0
-    for match in re.finditer(r"^## ", content, re.MULTILINE):
-        header_end = match.start()
-        break
+    # Extract preamble (everything before first "## {column}")
+    first_col = None
+    for col_key in COLUMN_ORDER:
+        col_name = COLUMNS[col_key]
+        if f"## {col_name}" in content:
+            idx = content.index(f"## {col_name}")
+            if first_col is None or idx < first_col:
+                first_col = idx
 
-    preamble = content[:header_end] if header_end > 0 else ""
+    preamble = content[:first_col].rstrip() if first_col is not None else ""
 
-    # Rebuild from COLUMN_ORDER
-    lines = [preamble.rstrip()]
+    # Extract footer (from "---\n\n## How It Works" onward)
+    footer = ""
+    footer_match = re.search(r"\n---\n\n## How It Works.*", content, re.DOTALL)
+    if footer_match:
+        footer = footer_match.group(0).rstrip()
+
+    # Rebuild board
+    lines = [preamble]
     for col_key in COLUMN_ORDER:
         col_name = COLUMNS[col_key]
         items = sections.get(col_key, [])
@@ -128,11 +144,8 @@ def write_board(sections):
             lines.append(f"_No items._")
         lines.append("")
 
-    # Append footer (how-it-works) from original if present
-    footer_match = re.search(r"^---\n\n## How It Works.*", content, re.DOTALL)
-    if footer_match:
-        lines.append("")
-        lines.append(footer_match.group(0))
+    if footer:
+        lines.append(footer)
 
     with open(BOARD_PATH, "w") as f:
         f.write("\n".join(lines) + "\n")

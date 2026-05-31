@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +7,9 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
+    /* ── Theme: Dark ───────────────────────────────────── */
+    :root,
+    [data-theme="dark"] {
       --bg: #0f0f1a;
       --card: #1a1a2e;
       --accent: #7dd3fc;
@@ -18,6 +20,41 @@
       --green: #4ade80;
       --pink: #f472b6;
       --yellow: #facc15;
+      --toggle-bg: rgba(255,255,255,.07);
+      --toggle-border: rgba(255,255,255,.12);
+      --shadow-card: 0 25px 60px rgba(0,0,0,.4);
+      --orb-blue: rgba(56,189,248,.08);
+      --orb-pink: rgba(244,114,182,.06);
+    }
+
+    /* ── Theme: Light ──────────────────────────────────── */
+    [data-theme="light"] {
+      --bg: #f0f4ff;
+      --card: #ffffff;
+      --accent: #0284c7;
+      --accent-glow: #0ea5e9;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --green: #16a34a;
+      --pink: #db2777;
+      --yellow: #ca8a04;
+      --toggle-bg: rgba(0,0,0,.05);
+      --toggle-border: rgba(0,0,0,.1);
+      --shadow-card: 0 25px 60px rgba(0,0,0,.1);
+      --orb-blue: rgba(14,165,233,.06);
+      --orb-pink: rgba(219,39,119,.04);
+    }
+
+    /* ── Smooth theme transitions ──────────────────────── */
+    html {
+      transition: color-scheme 0.4s;
+    }
+    body, .card, .chip, .teaser, .orb, .particle {
+      transition: background-color 0.4s ease,
+                  color 0.4s ease,
+                  border-color 0.4s ease,
+                  box-shadow 0.4s ease;
     }
 
     body {
@@ -32,7 +69,61 @@
       overflow-x: hidden;
     }
 
-    /* Background particles */
+    /* ── Theme Toggle ──────────────────────────────────── */
+    .theme-toggle {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.25rem;
+      z-index: 999;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--toggle-bg);
+      border: 1px solid var(--toggle-border);
+      color: var(--text);
+      font-size: 1.3rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.3s ease,
+                  background 0.4s ease,
+                  border-color 0.4s ease,
+                  box-shadow 0.3s ease;
+      outline: none;
+    }
+    .theme-toggle:hover {
+      transform: scale(1.12);
+      box-shadow: 0 4px 20px rgba(0,0,0,.15);
+    }
+    .theme-toggle:active {
+      transform: scale(0.95);
+    }
+    .theme-toggle .icon-sun,
+    .theme-toggle .icon-moon {
+      position: absolute;
+      transition: opacity 0.3s ease, transform 0.4s ease;
+    }
+    [data-theme="dark"] .theme-toggle .icon-sun {
+      opacity: 1;
+      transform: rotate(0deg) scale(1);
+    }
+    [data-theme="dark"] .theme-toggle .icon-moon {
+      opacity: 0;
+      transform: rotate(90deg) scale(0.6);
+    }
+    [data-theme="light"] .theme-toggle .icon-sun {
+      opacity: 0;
+      transform: rotate(-90deg) scale(0.6);
+    }
+    [data-theme="light"] .theme-toggle .icon-moon {
+      opacity: 1;
+      transform: rotate(0deg) scale(1);
+    }
+
+    /* ── Background particles ──────────────────────────── */
     .particles {
       position: fixed;
       inset: 0;
@@ -51,7 +142,7 @@
       50% { transform: translateY(-40px) scale(1.4); }
     }
 
-    /* Main card */
+    /* ── Main card ─────────────────────────────────────── */
     .container {
       position: relative;
       z-index: 1;
@@ -65,7 +156,7 @@
       border-radius: 24px;
       padding: 3rem 2.5rem;
       text-align: center;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+      box-shadow: var(--shadow-card);
       position: relative;
       overflow: hidden;
     }
@@ -81,7 +172,7 @@
       pointer-events: none;
     }
 
-    /* Koala icon */
+    /* ── Koala ─────────────────────────────────────────── */
     .koala {
       font-size: 5rem;
       margin-bottom: 0.5rem;
@@ -117,7 +208,7 @@
       z-index: 1;
     }
 
-    /* Status chips */
+    /* ── Status chips ──────────────────────────────────── */
     .status-row {
       display: flex;
       gap: 0.6rem;
@@ -134,6 +225,7 @@
       font-weight: 500;
       border: 1px solid;
       white-space: nowrap;
+      transition: background 0.4s, border-color 0.4s, color 0.4s;
     }
     .chip.live {
       background: rgba(74,222,128,0.1);
@@ -158,7 +250,7 @@
       color: var(--yellow);
     }
 
-    /* Feature teasers */
+    /* ── Feature teasers ───────────────────────────────── */
     .teasers {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -187,7 +279,7 @@
     .teaser .title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
     .teaser .desc { color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
 
-    /* Footer */
+    /* ── Footer ────────────────────────────────────────── */
     .footer {
       margin-top: 2rem;
       color: var(--muted);
@@ -201,7 +293,7 @@
     }
     .footer a:hover { text-decoration: underline; }
 
-    /* Glow orbs */
+    /* ── Glow orbs ─────────────────────────────────────── */
     .orb {
       position: fixed;
       border-radius: 50%;
@@ -211,17 +303,22 @@
     }
     .orb.blue {
       width: 400px; height: 400px;
-      background: rgba(56,189,248,0.08);
+      background: var(--orb-blue);
       top: -100px; right: -100px;
     }
     .orb.pink {
       width: 300px; height: 300px;
-      background: rgba(244,114,182,0.06);
+      background: var(--orb-pink);
       bottom: -80px; left: -80px;
     }
   </style>
 </head>
 <body>
+
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode" title="Toggle theme">
+    <span class="icon-sun">☀️</span>
+    <span class="icon-moon">🌙</span>
+  </button>
 
   <div class="orb blue"></div>
   <div class="orb pink"></div>
@@ -265,7 +362,23 @@
   </div>
 
   <script>
-    // Generate floating particles
+    // ── Theme Toggle ─────────────────────────────
+    const html = document.documentElement;
+    const toggle = document.getElementById('themeToggle');
+
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      html.setAttribute('data-theme', savedTheme);
+    }
+
+    toggle.addEventListener('click', () => {
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+
+    // ── Floating Particles ───────────────────────
     const container = document.getElementById('particles');
     for (let i = 0; i < 20; i++) {
       const p = document.createElement('div');
