@@ -4,3 +4,13 @@
 
 # Pipeline scripts (contain tokens, should not be in repo)
 pipeline/
+
+# Workspace files that leak from parent dir
+.openclaw/
+AGENTS.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
+assets/
