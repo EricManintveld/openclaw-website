@@ -196,7 +196,9 @@
     .hero-grid,
     .section-grid,
     .stats-grid,
-    .metrics-grid {
+    .metrics-grid,
+    .detail-grid,
+    .layers-grid {
       display: grid;
       gap: 1.25rem;
       margin-top: 1.5rem;
@@ -204,15 +206,20 @@
       z-index: 1;
     }
 
-    .hero-grid { grid-template-columns: 1.35fr 0.95fr; align-items: stretch; }
+    .hero-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
     .section-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .detail-grid { grid-template-columns: 1.15fr 0.85fr; }
+    .layers-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
     .mini-card,
     .feature-card,
     .stat,
-    .metric {
+    .metric,
+    .flow-card,
+    .detail-card,
+    .layer-card {
       background: var(--card-soft);
       border: 1px solid var(--border);
       border-radius: 22px;
@@ -256,7 +263,9 @@
 
     .feature-icon,
     .metric-icon,
-    .stat-icon {
+    .stat-icon,
+    .flow-icon,
+    .layer-icon {
       width: 52px;
       height: 52px;
       border-radius: 16px;
@@ -281,6 +290,75 @@
       border-radius: 18px;
       border: 1px solid rgba(125,211,252,0.22);
       background: rgba(125,211,252,0.07);
+    }
+
+    .flow-card {
+      min-height: 100%;
+      position: relative;
+    }
+
+    .flow-arrow {
+      position: absolute;
+      top: 50%;
+      right: -1rem;
+      transform: translateY(-50%);
+      color: var(--accent);
+      font-size: 1.4rem;
+      font-weight: 800;
+      opacity: 0.85;
+    }
+
+    .flow-card:last-child .flow-arrow { display: none; }
+
+    .flow-card h2,
+    .detail-card h3,
+    .layer-card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 0.7rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .flow-label,
+    .detail-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+      padding: 0.38rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      position: relative;
+      z-index: 1;
+    }
+
+    .flow-points,
+    .detail-list {
+      margin-top: 1rem;
+      padding-left: 1.1rem;
+      color: var(--muted);
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    .flow-points li + li,
+    .detail-list li + li { margin-top: 0.5rem; }
+
+    .detail-card,
+    .layer-card { min-height: 100%; }
+
+    .detail-card p,
+    .layer-card p {
+      color: var(--muted);
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
     }
 
     .timeline-steps {
@@ -441,8 +519,18 @@
       .section-grid,
       .stats-grid,
       .metrics-grid,
+      .detail-grid,
+      .layers-grid,
       .diagram {
         grid-template-columns: 1fr;
+      }
+
+      .flow-arrow {
+        right: auto;
+        top: auto;
+        left: 50%;
+        bottom: -1rem;
+        transform: translateX(-50%);
       }
 
       .node::after {
@@ -492,74 +580,106 @@
 
     <section class="hero">
       <div class="eyebrow">⚙️ Trello + OpenClaw workflow</div>
-      <h1>How ideas on a Trello card turn into a live website update.</h1>
+      <h1>Three cards explain the whole system in one glance.</h1>
       <p>
-        Sam's Playground is not updated by hand each time. A Trello board captures the next idea,
-        OpenClaw notices when a card moves into progress, and an agent builds the feature, opens a PR,
-        and gets it ready for review. This page explains that flow with a few visuals so it is easy to scan.
+        Start with the request in Trello, let OpenClaw turn that request into real code, and end with the visible result on the website.
+        The page below starts simple, then keeps unpacking more of the process as you scroll.
       </p>
 
       <div class="hero-grid">
-        <div class="mini-card">
-          <h2>The short version</h2>
-          <div class="stack">
-            <p><strong>Trello</strong> is the request inbox. Every feature starts as a card with a title, notes, and sometimes design hints.</p>
-            <p><strong>OpenClaw</strong> is the builder + coordinator. It watches the board, picks up work, edits the repo, and prepares review-ready pull requests.</p>
-            <p><strong>GitHub Pages</strong> publishes the result after the reviewed change lands in the repository.</p>
-          </div>
-          <div class="pill-row" style="margin-top:1rem;">
-            <span class="pill">Ideas → Cards</span>
-            <span class="pill">Cards → Code</span>
-            <span class="pill">Code → PR</span>
-            <span class="pill">PR → Live site</span>
-          </div>
-        </div>
+        <article class="flow-card">
+          <div class="flow-label">Step 1</div>
+          <div class="flow-icon">📌</div>
+          <h2>Trello</h2>
+          <p>A card captures the idea, the desired change, and any extra context. Moving it into progress is what kicks off the work.</p>
+          <ul class="flow-points">
+            <li>The card is the brief.</li>
+            <li>The list movement is the trigger.</li>
+            <li>The board stays the visible source of truth.</li>
+          </ul>
+          <div class="flow-arrow">→</div>
+        </article>
 
-        <div class="mini-card">
-          <h2>What gets automated?</h2>
-          <div class="stats-grid">
-            <div class="stat">
-              <div class="stat-icon">📝</div>
-              <div class="stat-label">Request intake</div>
-              <p class="metric-copy">A card is the source of truth for the next change.</p>
-            </div>
-            <div class="stat">
-              <div class="stat-icon">🤖</div>
-              <div class="stat-label">Implementation</div>
-              <p class="metric-copy">The agent reads the brief, edits the site, and checks the result.</p>
-            </div>
-            <div class="stat">
-              <div class="stat-icon">🚀</div>
-              <div class="stat-label">Delivery</div>
-              <p class="metric-copy">A PR is opened and the board is updated for review.</p>
-            </div>
-          </div>
-        </div>
+        <article class="flow-card">
+          <div class="flow-label">Step 2</div>
+          <div class="flow-icon">🐨</div>
+          <h2>OpenClaw</h2>
+          <p>OpenClaw reads the card, updates the repo, checks the work, pushes a branch, and prepares a pull request for review.</p>
+          <ul class="flow-points">
+            <li>Reads the title and description.</li>
+            <li>Edits HTML, CSS, and assets as needed.</li>
+            <li>Packages the change into a review-ready PR.</li>
+          </ul>
+          <div class="flow-arrow">→</div>
+        </article>
+
+        <article class="flow-card">
+          <div class="flow-label">Step 3</div>
+          <div class="flow-icon">✨</div>
+          <h2>Result</h2>
+          <p>The output is not just code. It is a clear before-and-after outcome: a changed page, a PR link, and a board card ready for review.</p>
+          <ul class="flow-points">
+            <li>The website change is visible.</li>
+            <li>The PR explains exactly what changed.</li>
+            <li>The Trello card moves forward with the work.</li>
+          </ul>
+        </article>
       </div>
     </section>
 
     <section class="section-card">
-      <div class="eyebrow">🧩 Roles in the system</div>
-      <h2>Each tool has a clear job.</h2>
-      <div class="section-grid">
-        <article class="feature-card">
-          <div class="feature-icon">📌</div>
-          <h3>Trello board</h3>
-          <p>Acts like the product backlog. Cards move from To Do to In Progress to Waiting for Review to Done.</p>
+      <div class="eyebrow">🔎 One layer deeper</div>
+      <h2>Those three cards are the overview. Here is what each one really means.</h2>
+      <div class="detail-grid">
+        <article class="detail-card">
+          <div class="detail-label">Input → Work → Output</div>
+          <h3>The system is intentionally simple at the top.</h3>
+          <p>
+            People should be able to understand the workflow in seconds: request, build, result. That is why the first section is only three cards.
+            Underneath that, the process gets more detailed so curious visitors can see the mechanics without being overloaded immediately.
+          </p>
+          <ul class="detail-list">
+            <li><strong>Trello</strong> answers: what do we want?</li>
+            <li><strong>OpenClaw</strong> answers: how does it get built?</li>
+            <li><strong>Result</strong> answers: what do we get at the end?</li>
+          </ul>
         </article>
-        <article class="feature-card">
-          <div class="feature-icon">🛠️</div>
-          <h3>Pipeline script</h3>
-          <p>Detects list changes, kicks off the right action, and keeps state so cards are not handled twice.</p>
+        <article class="detail-card">
+          <div class="detail-label">Why this is useful</div>
+          <h3>It makes automation feel understandable instead of mysterious.</h3>
+          <p>
+            The page starts with the user-friendly story first, then gradually reveals the workflow details, the moving parts, and the review checkpoints.
+            That creates a better overview immediately while still giving enough depth further down the page.
+          </p>
+          <div class="callout">
+            In other words: first show the big picture, then progressively zoom in on how the system actually runs.
+          </div>
         </article>
-        <article class="feature-card">
-          <div class="feature-icon">🐨</div>
-          <h3>OpenClaw agents</h3>
-          <p>Build the requested website change, commit the work, push a branch, and prepare a pull request.</p>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="eyebrow">🧩 More detail</div>
+      <h2>Break the flow into the parts doing the work.</h2>
+      <div class="layers-grid">
+        <article class="layer-card">
+          <div class="layer-icon">📋</div>
+          <h3>Planning layer</h3>
+          <p>Trello acts like the front door. New ideas, refinements, and priorities are captured in one place where people can see and adjust them.</p>
+        </article>
+        <article class="layer-card">
+          <div class="layer-icon">⚙️</div>
+          <h3>Automation layer</h3>
+          <p>The pipeline notices state changes, starts the right worker, and passes along the exact card context so implementation begins from the real request.</p>
+        </article>
+        <article class="layer-card">
+          <div class="layer-icon">🛠️</div>
+          <h3>Build layer</h3>
+          <p>OpenClaw agents update files, verify the output, and shape the work into a branch and pull request instead of leaving changes half-finished.</p>
         </article>
       </div>
       <div class="callout">
-        In practice, that means the board is not just a tracker — it is the trigger that starts the website-building workflow.
+        This is where the page begins to go from “what happens” into “which part of the system is responsible for each step.”
       </div>
     </section>
 
