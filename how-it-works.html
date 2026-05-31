@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How Trello + OpenClaw Build the Site · Sam's Playground</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root,
+    [data-theme="dark"] {
+      --bg: #0f0f1a;
+      --card: #1a1a2e;
+      --card-soft: rgba(255,255,255,0.03);
+      --accent: #7dd3fc;
+      --accent-glow: #38bdf8;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #334155;
+      --green: #4ade80;
+      --pink: #f472b6;
+      --yellow: #facc15;
+      --purple: #a78bfa;
+      --toggle-bg: rgba(255,255,255,.07);
+      --toggle-border: rgba(255,255,255,.12);
+      --shadow-card: 0 25px 60px rgba(0,0,0,.4);
+      --orb-blue: rgba(56,189,248,.08);
+      --orb-pink: rgba(244,114,182,.06);
+      color-scheme: dark;
+    }
+
+    [data-theme="light"] {
+      --bg: #f0f4ff;
+      --card: #ffffff;
+      --card-soft: rgba(15,23,42,0.03);
+      --accent: #0284c7;
+      --accent-glow: #0ea5e9;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --green: #16a34a;
+      --pink: #db2777;
+      --yellow: #ca8a04;
+      --purple: #7c3aed;
+      --toggle-bg: rgba(0,0,0,.05);
+      --toggle-border: rgba(0,0,0,.1);
+      --shadow-card: 0 25px 60px rgba(0,0,0,.1);
+      --orb-blue: rgba(14,165,233,.06);
+      --orb-pink: rgba(219,39,119,.04);
+      color-scheme: light;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top, rgba(125,211,252,0.08), transparent 28%), var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.25rem;
+      z-index: 999;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--toggle-bg);
+      border: 1px solid var(--toggle-border);
+      color: var(--text);
+      font-size: 1.3rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.3s ease, background 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease;
+    }
+    .theme-toggle:hover { transform: scale(1.08); box-shadow: 0 4px 20px rgba(0,0,0,.15); }
+    .theme-toggle .icon-sun,
+    .theme-toggle .icon-moon { position: absolute; transition: opacity 0.3s ease, transform 0.4s ease; }
+    [data-theme="dark"] .theme-toggle .icon-sun { opacity: 1; transform: rotate(0deg) scale(1); }
+    [data-theme="dark"] .theme-toggle .icon-moon { opacity: 0; transform: rotate(90deg) scale(0.6); }
+    [data-theme="light"] .theme-toggle .icon-sun { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+    [data-theme="light"] .theme-toggle .icon-moon { opacity: 1; transform: rotate(0deg) scale(1); }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb.blue { width: 420px; height: 420px; background: var(--orb-blue); top: -120px; right: -120px; }
+    .orb.pink { width: 320px; height: 320px; background: var(--orb-pink); bottom: -90px; left: -90px; }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 5rem 1.5rem 4rem;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    .hero,
+    .section-card,
+    .timeline,
+    .diagram-card,
+    .metrics-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: 3rem;
+      margin-bottom: 1.75rem;
+    }
+    .hero::before,
+    .section-card::before,
+    .diagram-card::before,
+    .timeline::before,
+    .metrics-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(125,211,252,0.08), transparent 42%),
+                  radial-gradient(circle at bottom right, rgba(244,114,182,0.08), transparent 38%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 4vw, 3.6rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p,
+    .section-card p,
+    .timeline-intro,
+    .callout,
+    .step p,
+    .diagram-note,
+    .metric-copy {
+      color: var(--muted);
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p { max-width: 760px; font-size: 1.08rem; }
+
+    .hero-grid,
+    .section-grid,
+    .stats-grid,
+    .metrics-grid {
+      display: grid;
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-grid { grid-template-columns: 1.35fr 0.95fr; align-items: stretch; }
+    .section-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .mini-card,
+    .feature-card,
+    .stat,
+    .metric {
+      background: var(--card-soft);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 1.35rem;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .mini-card h2,
+    .section-card h2,
+    .diagram-card h2,
+    .timeline h2,
+    .metrics-card h2 {
+      font-size: 1.55rem;
+      margin-bottom: 0.9rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .mini-card h3,
+    .feature-card h3,
+    .step h3,
+    .metric h3,
+    .stat-label { margin-bottom: 0.55rem; position: relative; z-index: 1; }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+    .pill {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.45rem 0.8rem;
+      font-size: 0.85rem;
+      color: var(--text);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .feature-icon,
+    .metric-icon,
+    .stat-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-size: 1.45rem;
+      margin-bottom: 0.9rem;
+      background: rgba(125,211,252,0.12);
+      border: 1px solid rgba(125,211,252,0.18);
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-card,
+    .timeline,
+    .diagram-card,
+    .metrics-card { padding: 2rem; margin-top: 1.75rem; }
+
+    .callout {
+      margin-top: 1rem;
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(125,211,252,0.22);
+      background: rgba(125,211,252,0.07);
+    }
+
+    .timeline-steps {
+      margin-top: 1.5rem;
+      display: grid;
+      gap: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1rem;
+      align-items: start;
+      padding: 1rem 1.1rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--card-soft);
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: #0f172a;
+      background: linear-gradient(135deg, var(--accent), var(--accent-glow));
+    }
+
+    .step-tag {
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .diagram-shell {
+      margin-top: 1.25rem;
+      border-radius: 24px;
+      padding: 1.35rem;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      position: relative;
+      z-index: 1;
+    }
+
+    .diagram {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .node {
+      min-height: 130px;
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      background: var(--card-soft);
+      padding: 1rem;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.45rem;
+    }
+
+    .node::after {
+      content: "";
+      position: absolute;
+      right: -0.65rem;
+      top: 50%;
+      width: 1.2rem;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      transform: translateY(-50%);
+    }
+
+    .node:last-child::after { display: none; }
+
+    .node-title { font-weight: 700; font-size: 1rem; }
+    .node-copy { color: var(--muted); font-size: 0.92rem; line-height: 1.5; }
+
+    .diagram-footer {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .bar-chart {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.85rem;
+      align-items: end;
+      min-height: 180px;
+    }
+
+    .bar {
+      border-radius: 18px 18px 10px 10px;
+      background: linear-gradient(180deg, rgba(125,211,252,0.95), rgba(167,139,250,0.7));
+      border: 1px solid rgba(125,211,252,0.25);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 0.85rem;
+      color: #0f172a;
+      font-weight: 800;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.24), transparent 45%);
+      pointer-events: none;
+    }
+
+    .bar-label {
+      text-align: center;
+      margin-top: 0.55rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 0.45rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-note {
+      margin-top: 1.6rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .footer-note a { color: var(--accent); text-decoration: none; }
+    .footer-note a:hover { text-decoration: underline; }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .diagram-footer,
+      .section-grid,
+      .stats-grid,
+      .metrics-grid,
+      .diagram {
+        grid-template-columns: 1fr;
+      }
+
+      .node::after {
+        right: auto;
+        left: 50%;
+        top: auto;
+        bottom: -0.65rem;
+        width: 2px;
+        height: 1.2rem;
+        background: linear-gradient(180deg, var(--accent), transparent);
+        transform: translateX(-50%);
+      }
+
+      .step {
+        grid-template-columns: auto 1fr;
+      }
+
+      .step-tag {
+        grid-column: 2;
+        justify-self: start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page { padding-top: 4.5rem; }
+      .hero, .section-card, .timeline, .diagram-card, .metrics-card { padding: 1.4rem; border-radius: 22px; }
+      h1 { font-size: 2.2rem; }
+      .step { grid-template-columns: 1fr; }
+      .step-tag { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode" title="Toggle theme">
+    <span class="icon-sun">☀️</span>
+    <span class="icon-moon">🌙</span>
+  </button>
+
+  <div class="orb blue"></div>
+  <div class="orb pink"></div>
+
+  <main class="page">
+    <div class="topbar">
+      <a class="back-link" href="index.html">← Back to home</a>
+      <a class="back-link" href="agents.html">Meet the agents</a>
+    </div>
+
+    <section class="hero">
+      <div class="eyebrow">⚙️ Trello + OpenClaw workflow</div>
+      <h1>How ideas on a Trello card turn into a live website update.</h1>
+      <p>
+        Sam's Playground is not updated by hand each time. A Trello board captures the next idea,
+        OpenClaw notices when a card moves into progress, and an agent builds the feature, opens a PR,
+        and gets it ready for review. This page explains that flow with a few visuals so it is easy to scan.
+      </p>
+
+      <div class="hero-grid">
+        <div class="mini-card">
+          <h2>The short version</h2>
+          <div class="stack">
+            <p><strong>Trello</strong> is the request inbox. Every feature starts as a card with a title, notes, and sometimes design hints.</p>
+            <p><strong>OpenClaw</strong> is the builder + coordinator. It watches the board, picks up work, edits the repo, and prepares review-ready pull requests.</p>
+            <p><strong>GitHub Pages</strong> publishes the result after the reviewed change lands in the repository.</p>
+          </div>
+          <div class="pill-row" style="margin-top:1rem;">
+            <span class="pill">Ideas → Cards</span>
+            <span class="pill">Cards → Code</span>
+            <span class="pill">Code → PR</span>
+            <span class="pill">PR → Live site</span>
+          </div>
+        </div>
+
+        <div class="mini-card">
+          <h2>What gets automated?</h2>
+          <div class="stats-grid">
+            <div class="stat">
+              <div class="stat-icon">📝</div>
+              <div class="stat-label">Request intake</div>
+              <p class="metric-copy">A card is the source of truth for the next change.</p>
+            </div>
+            <div class="stat">
+              <div class="stat-icon">🤖</div>
+              <div class="stat-label">Implementation</div>
+              <p class="metric-copy">The agent reads the brief, edits the site, and checks the result.</p>
+            </div>
+            <div class="stat">
+              <div class="stat-icon">🚀</div>
+              <div class="stat-label">Delivery</div>
+              <p class="metric-copy">A PR is opened and the board is updated for review.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="eyebrow">🧩 Roles in the system</div>
+      <h2>Each tool has a clear job.</h2>
+      <div class="section-grid">
+        <article class="feature-card">
+          <div class="feature-icon">📌</div>
+          <h3>Trello board</h3>
+          <p>Acts like the product backlog. Cards move from To Do to In Progress to Waiting for Review to Done.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon">🛠️</div>
+          <h3>Pipeline script</h3>
+          <p>Detects list changes, kicks off the right action, and keeps state so cards are not handled twice.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon">🐨</div>
+          <h3>OpenClaw agents</h3>
+          <p>Build the requested website change, commit the work, push a branch, and prepare a pull request.</p>
+        </article>
+      </div>
+      <div class="callout">
+        In practice, that means the board is not just a tracker — it is the trigger that starts the website-building workflow.
+      </div>
+    </section>
+
+    <section class="timeline">
+      <div class="eyebrow">🪄 Step-by-step</div>
+      <h2>What happens after a card is created?</h2>
+      <p class="timeline-intro">This is the typical journey from idea to published page.</p>
+      <div class="timeline-steps">
+        <article class="step">
+          <div class="step-number">1</div>
+          <div>
+            <h3>A new idea is written as a Trello card</h3>
+            <p>The card title describes the feature. The description can include extra guidance like “make it look nice” or “add visual charts.”</p>
+          </div>
+          <span class="step-tag">Trello</span>
+        </article>
+        <article class="step">
+          <div class="step-number">2</div>
+          <div>
+            <h3>The pipeline sees the card move into In Progress</h3>
+            <p>The local Trello watcher notices the list change and dispatches a builder agent with the repo path, card details, and acceptance goal.</p>
+          </div>
+          <span class="step-tag">Automation</span>
+        </article>
+        <article class="step">
+          <div class="step-number">3</div>
+          <div>
+            <h3>OpenClaw edits the website files</h3>
+            <p>The agent updates HTML, CSS, and supporting assets, then verifies the result with lightweight checks like git diff or page inspection.</p>
+          </div>
+          <span class="step-tag">Build</span>
+        </article>
+        <article class="step">
+          <div class="step-number">4</div>
+          <div>
+            <h3>A branch and pull request are created</h3>
+            <p>Once the feature looks good, the change is committed, pushed to GitHub, and opened as a PR so someone can review it safely.</p>
+          </div>
+          <span class="step-tag">GitHub</span>
+        </article>
+        <article class="step">
+          <div class="step-number">5</div>
+          <div>
+            <h3>The Trello card is moved to Waiting for Review</h3>
+            <p>The automation comments on the card with the PR link, so the board stays aligned with the actual state of the work.</p>
+          </div>
+          <span class="step-tag">Sync</span>
+        </article>
+        <article class="step">
+          <div class="step-number">6</div>
+          <div>
+            <h3>After merge, GitHub Pages serves the updated site</h3>
+            <p>When the PR lands, the website deploy target picks up the latest main branch and the new section becomes live.</p>
+          </div>
+          <span class="step-tag">Live</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="diagram-card">
+      <div class="eyebrow">📊 Visual overview</div>
+      <h2>One card flows through four systems.</h2>
+      <p class="diagram-note">This diagram shows the baton pass from planning, to automation, to code review, to publishing.</p>
+
+      <div class="diagram-shell">
+        <div class="diagram">
+          <div class="node">
+            <div class="node-title">Trello card</div>
+            <div class="node-copy">Feature request is created and moved into progress.</div>
+          </div>
+          <div class="node">
+            <div class="node-title">OpenClaw pipeline</div>
+            <div class="node-copy">Detects the move and starts the builder workflow.</div>
+          </div>
+          <div class="node">
+            <div class="node-title">GitHub pull request</div>
+            <div class="node-copy">Code changes are pushed for review with context.</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Published website</div>
+            <div class="node-copy">Approved changes become part of the live playground.</div>
+          </div>
+        </div>
+
+        <div class="diagram-footer">
+          <div class="mini-card">
+            <h3 style="margin-bottom:0.9rem; position:relative; z-index:1;">Pipeline stages at a glance</h3>
+            <div class="bar-chart">
+              <div>
+                <div class="bar" style="height: 38%;">Plan</div>
+                <div class="bar-label">Trello</div>
+              </div>
+              <div>
+                <div class="bar" style="height: 72%;">Build</div>
+                <div class="bar-label">OpenClaw</div>
+              </div>
+              <div>
+                <div class="bar" style="height: 52%;">Ship</div>
+                <div class="bar-label">GitHub</div>
+              </div>
+            </div>
+          </div>
+          <div class="mini-card">
+            <h3 style="margin-bottom:0.9rem; position:relative; z-index:1;">Why this setup works</h3>
+            <div class="stack">
+              <p><strong>Visible:</strong> anyone can see what is being worked on.</p>
+              <p><strong>Repeatable:</strong> the same card-to-code flow can run for every small feature.</p>
+              <p><strong>Reviewable:</strong> pull requests keep a human approval step before merge.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics-card">
+      <div class="eyebrow">✨ Automation benefits</div>
+      <h2>What this gives Sam's Playground</h2>
+      <div class="metrics-grid">
+        <article class="metric">
+          <div class="metric-icon">⚡</div>
+          <div class="metric-value">Faster</div>
+          <p class="metric-copy">Less manual project management between idea, coding, and review.</p>
+        </article>
+        <article class="metric">
+          <div class="metric-icon">🧠</div>
+          <div class="metric-value">Clearer</div>
+          <p class="metric-copy">The Trello card stays connected to the exact code change that implements it.</p>
+        </article>
+        <article class="metric">
+          <div class="metric-icon">🧪</div>
+          <div class="metric-value">Safer</div>
+          <p class="metric-copy">Changes still go through git history and review instead of being edited directly on the live site.</p>
+        </article>
+        <article class="metric">
+          <div class="metric-icon">🌱</div>
+          <div class="metric-value">Scalable</div>
+          <p class="metric-copy">New cards can keep feeding the same system as the playground grows.</p>
+        </article>
+      </div>
+      <p class="footer-note">
+        Curious about the repo? View it on <a href="https://github.com/EricManintveld/openclaw-website">GitHub</a> or follow the work on <a href="https://trello.com/b/j7FAjNDu/openclaw-website">Trello</a>.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const html = document.documentElement;
+    const toggle = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) html.setAttribute('data-theme', savedTheme);
+    toggle.addEventListener('click', () => {
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+  </script>
+</body>
+</html>
