@@ -129,7 +129,8 @@
     .section-card,
     .timeline,
     .diagram-card,
-    .metrics-card {
+    .metrics-card,
+    .faq-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 28px;
@@ -146,7 +147,8 @@
     .section-card::before,
     .diagram-card::before,
     .timeline::before,
-    .metrics-card::before {
+    .metrics-card::before,
+    .faq-card::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -184,7 +186,10 @@
     .callout,
     .step p,
     .diagram-note,
-    .metric-copy {
+    .metric-copy,
+    .faq-answer,
+    .faq-intro,
+    .sandbox-note {
       color: var(--muted);
       line-height: 1.7;
       position: relative;
@@ -198,7 +203,9 @@
     .stats-grid,
     .metrics-grid,
     .detail-grid,
-    .layers-grid {
+    .layers-grid,
+    .sandbox-grid,
+    .faq-grid {
       display: grid;
       gap: 1.25rem;
       margin-top: 1.5rem;
@@ -212,6 +219,8 @@
     .metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .detail-grid { grid-template-columns: 1.15fr 0.85fr; }
     .layers-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .sandbox-grid { grid-template-columns: 1.05fr 0.95fr; }
+    .faq-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
     .mini-card,
     .feature-card,
@@ -219,7 +228,9 @@
     .metric,
     .flow-card,
     .detail-card,
-    .layer-card {
+    .layer-card,
+    .sandbox-card,
+    .faq-item {
       background: var(--card-soft);
       border: 1px solid var(--border);
       border-radius: 22px;
@@ -232,7 +243,8 @@
     .section-card h2,
     .diagram-card h2,
     .timeline h2,
-    .metrics-card h2 {
+    .metrics-card h2,
+    .faq-card h2 {
       font-size: 1.55rem;
       margin-bottom: 0.9rem;
       position: relative;
@@ -243,7 +255,9 @@
     .feature-card h3,
     .step h3,
     .metric h3,
-    .stat-label { margin-bottom: 0.55rem; position: relative; z-index: 1; }
+    .stat-label,
+    .sandbox-card h3,
+    .faq-item h3 { margin-bottom: 0.55rem; position: relative; z-index: 1; }
 
     .stack {
       display: flex;
@@ -265,7 +279,8 @@
     .metric-icon,
     .stat-icon,
     .flow-icon,
-    .layer-icon {
+    .layer-icon,
+    .sandbox-icon {
       width: 52px;
       height: 52px;
       border-radius: 16px;
@@ -282,7 +297,8 @@
     .section-card,
     .timeline,
     .diagram-card,
-    .metrics-card { padding: 2rem; margin-top: 1.75rem; }
+    .metrics-card,
+    .faq-card { padding: 2rem; margin-top: 1.75rem; }
 
     .callout {
       margin-top: 1rem;
@@ -510,6 +526,30 @@
       font-size: 0.92rem;
     }
 
+    .sandbox-list,
+    .sandbox-rules {
+      margin-top: 1rem;
+      padding-left: 1.1rem;
+      color: var(--muted);
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sandbox-list li + li,
+    .sandbox-rules li + li { margin-top: 0.5rem; }
+
+    .sandbox-note {
+      margin-top: 1rem;
+      padding: 0.95rem 1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(125,211,252,0.22);
+      background: rgba(125,211,252,0.06);
+    }
+
+    .faq-answer strong,
+    .sandbox-card strong { color: var(--text); }
+
     .footer-note a { color: var(--accent); text-decoration: none; }
     .footer-note a:hover { text-decoration: underline; }
 
@@ -521,6 +561,8 @@
       .metrics-grid,
       .detail-grid,
       .layers-grid,
+      .sandbox-grid,
+      .faq-grid,
       .diagram {
         grid-template-columns: 1fr;
       }
@@ -556,7 +598,7 @@
 
     @media (max-width: 640px) {
       .page { padding-top: 4.5rem; }
-      .hero, .section-card, .timeline, .diagram-card, .metrics-card { padding: 1.4rem; border-radius: 22px; }
+      .hero, .section-card, .timeline, .diagram-card, .metrics-card, .faq-card { padding: 1.4rem; border-radius: 22px; }
       h1 { font-size: 2.2rem; }
       .step { grid-template-columns: 1fr; }
       .step-tag { grid-column: auto; }
@@ -794,6 +836,83 @@
       </div>
     </section>
 
+    <section class="section-card">
+      <div class="eyebrow">🧪 Sandboxed code execution</div>
+      <h2>How code execution works without turning into chaos.</h2>
+      <p class="faq-intro">
+        Some tasks need more than editing HTML. When the agent has to run code, it does that inside a sandboxed environment with limits, logs, and review steps.
+        The short version: the system is here to build the requested thing, not to freeload, escape, or do something sneaky behind your back.
+      </p>
+      <div class="sandbox-grid">
+        <article class="sandbox-card">
+          <div class="sandbox-icon">🛡️</div>
+          <h3>What the sandbox is</h3>
+          <p>
+            Think of it like a temporary workshop. The agent gets a repo, a shell, and a bounded place to run commands needed for the task.
+            It can inspect files, make changes, and run lightweight verification, but it does not get magical unlimited access to the world.
+          </p>
+          <ul class="sandbox-list">
+            <li>Work happens in the project workspace for this site.</li>
+            <li>Commands are tied to the current task, not open-ended exploration.</li>
+            <li>Outputs are visible through git diff, logs, and pull requests.</li>
+          </ul>
+        </article>
+        <article class="sandbox-card">
+          <div class="sandbox-icon">🚧</div>
+          <h3>What keeps it contained</h3>
+          <p>
+            The agent is expected to use the smallest meaningful action, verify results, and leave an auditable trail.
+            Riskier actions need explicit approval, and normal changes still end in a reviewable branch instead of going straight to production.
+          </p>
+          <ul class="sandbox-rules">
+            <li><strong>Scoped access:</strong> it works in this repo unless a task explicitly needs more.</li>
+            <li><strong>Approval gates:</strong> destructive or sensitive actions should pause first.</li>
+            <li><strong>Review gates:</strong> changes become a PR before they become the site.</li>
+          </ul>
+        </article>
+      </div>
+      <div class="callout">
+        Basically: yes, code can run, but it runs inside rails. The workflow is designed to be useful, inspectable, and boring in the good way.
+      </div>
+    </section>
+
+    <section class="faq-card">
+      <div class="eyebrow">🙋 FAQ</div>
+      <h2>The reassuring version, in plain English</h2>
+      <div class="faq-grid">
+        <article class="faq-item">
+          <h3>Is the system secretly "out to get me"?</h3>
+          <p class="faq-answer">
+            Nope. Its job is to complete the card in front of it. It does not have its own agenda, and the process is intentionally set up around task scope, safety checks, and human review.
+          </p>
+        </article>
+        <article class="faq-item">
+          <h3>Can it just deploy anything it wants?</h3>
+          <p class="faq-answer">
+            Also no. The normal path is: make the change, verify it, commit it, open a pull request, and wait for review. That is a very different vibe from "YOLO straight to prod." 
+          </p>
+        </article>
+        <article class="faq-item">
+          <h3>What if a task needs to execute code?</h3>
+          <p class="faq-answer">
+            Then the agent runs the command needed for that task inside the workspace and checks the result. The point is practical execution with guardrails, not unrestricted access for fun.
+          </p>
+        </article>
+        <article class="faq-item">
+          <h3>How would I know what happened?</h3>
+          <p class="faq-answer">
+            You can trace the work through the Trello card, the git history, the branch, and the pull request summary. The whole setup is meant to leave breadcrumbs, not mysteries.
+          </p>
+        </article>
+      </div>
+      <p class="sandbox-note">
+        If you want the deepest technical explanation, the honest answer is that this setup combines <strong>scoped tools</strong>, <strong>approval rules</strong>, and <strong>repo-based review</strong> so automation stays accountable.
+      </p>
+      <p class="footer-note">
+        Curious about the repo? View it on <a href="https://github.com/EricManintveld/openclaw-website">GitHub</a> or follow the work on <a href="https://trello.com/b/j7FAjNDu/openclaw-website">Trello</a>.
+      </p>
+    </section>
+
     <section class="metrics-card">
       <div class="eyebrow">✨ Automation benefits</div>
       <h2>What this gives Sam's Playground</h2>
@@ -819,9 +938,6 @@
           <p class="metric-copy">New cards can keep feeding the same system as the playground grows.</p>
         </article>
       </div>
-      <p class="footer-note">
-        Curious about the repo? View it on <a href="https://github.com/EricManintveld/openclaw-website">GitHub</a> or follow the work on <a href="https://trello.com/b/j7FAjNDu/openclaw-website">Trello</a>.
-      </p>
     </section>
   </main>
 
