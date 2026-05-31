@@ -1,3 +1,6 @@
-# Sam's Playground pipeline — do not commit secrets
+# Secrets and state
 .env
-pipeline_state.json
+*_state.json
+
+# Pipeline scripts (contain tokens, should not be in repo)
+pipeline/
