@@ -1,0 +1,1 @@
+*/10 * * * * cd /home/azureuser/.openclaw/workspace/openclaw-website && /usr/bin/env bash pipeline/run_trello_poll.sh

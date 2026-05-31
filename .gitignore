@@ -1,6 +1,16 @@
 # Secrets and state
 .env
 *_state.json
+pipeline/*.log
 
-# Pipeline scripts (contain tokens, should not be in repo)
-pipeline/
+# Keep local assistant scratch files out of git
+.openclaw/
+AGENTS.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
+
+# Pipeline scripts with credentials stay local, but docs/wrappers can ship
+pipeline/*.py
