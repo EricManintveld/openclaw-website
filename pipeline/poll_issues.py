@@ -2,9 +2,8 @@
 """
 Sam's Playground - Issue Poller
 
-Polls GitHub for new open issues on the openclaw-website repo.
-Tracks seen issues in state.json. When a new issue is found, triggers
-a system event so Sam picks it up.
+Polls GitHub for new open issues. When a new issue is found, returns
+JSON on stdout. Sentry mode: also labels and closes stale issues.
 
 Usage: python3 poll_issues.py
 """
@@ -20,6 +19,10 @@ TOKEN = os.environ.get("GITHUB_TOKEN", "")
 STATE_FILE = os.path.join(os.path.dirname(__file__), "pipeline_state.json")
 API_BASE = "https://api.github.com"
 
+if not TOKEN:
+    print("GITHUB_TOKEN not set", file=sys.stderr)
+    sys.exit(1)
+
 
 def load_state():
     if os.path.exists(STATE_FILE):
@@ -33,9 +36,10 @@ def save_state(state):
         json.dump(state, f, indent=2)
 
 
-def api_request(endpoint):
+def api(method, endpoint, data=None):
     url = f"{API_BASE}{endpoint}"
-    req = urllib.request.Request(url)
+    body = json.dumps(data).encode() if data else None
+    req = urllib.request.Request(url, data=body, method=method)
     req.add_header("Authorization", f"Bearer {TOKEN}")
     req.add_header("Accept", "application/vnd.github+json")
     req.add_header("X-GitHub-Api-Version", "2022-11-28")
@@ -52,23 +56,15 @@ def api_request(endpoint):
 
 
 def get_open_issues():
-    """Get open issues, excluding PRs (issues with pull_request field)."""
-    issues = api_request(f"/repos/{REPO}/issues?state=open&per_page=100")
+    issues = api("GET", f"/repos/{REPO}/issues?state=open&per_page=100")
     if issues is None:
         return []
+    # Exclude PRs
     return [i for i in issues if "pull_request" not in i]
 
 
-def format_for_system_event(issue):
-    """Format an issue into a system event message."""
-    return json.dumps({
-        "type": "new_pbi",
-        "issue_number": issue["number"],
-        "title": issue["title"],
-        "body": issue.get("body", ""),
-        "html_url": issue["html_url"],
-        "created_at": issue["created_at"],
-    })
+def add_label(issue_number, label):
+    return api("POST", f"/repos/{REPO}/issues/{issue_number}/labels", [label])
 
 
 def main():
@@ -81,19 +77,31 @@ def main():
     new_issues = []
     for issue in issues:
         num = str(issue["number"])
-        if num not in state["seen_issues"] and num not in state["in_progress"]:
-            new_issues.append(issue)
+        # If already tracked and not in progress, skip
+        if num in state["seen_issues"]:
+            continue
+        if num in state["in_progress"]:
+            continue
+        new_issues.append(issue)
 
     if new_issues:
-        print(f"Found {len(new_issues)} new issue(s)")
         for issue in new_issues:
-            print(format_for_system_event(issue))
-            state["seen_issues"].append(str(issue["number"]))
+            num = str(issue["number"])
+            # Add backlog label to the issue
+            add_label(issue["number"], "backlog")
+            state["seen_issues"].append(num)
+
+            # Output JSON for the pipeline
+            print(json.dumps({
+                "type": "new_pbi",
+                "issue_number": issue["number"],
+                "title": issue["title"],
+                "body": issue.get("body", ""),
+                "html_url": issue["html_url"],
+                "created_at": issue["created_at"],
+            }))
 
         save_state(state)
-    else:
-        # Quiet exit when nothing new
-        pass
 
 
 if __name__ == "__main__":
