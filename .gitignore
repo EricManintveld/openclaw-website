@@ -1,0 +1,3 @@
+# Sam's Playground pipeline — do not commit secrets
+.env
+pipeline_state.json
