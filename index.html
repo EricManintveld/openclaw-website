@@ -26,6 +26,11 @@
       --shadow-card: 0 25px 60px rgba(0,0,0,.4);
       --orb-blue: rgba(56,189,248,.08);
       --orb-pink: rgba(244,114,182,.06);
+      --logo-wall-bg: rgba(255,255,255,0.05);
+      --logo-wall-border: rgba(255,255,255,0.08);
+      --logo-pill-bg: rgba(255,255,255,0.06);
+      --logo-pill-border: rgba(255,255,255,0.1);
+      --logo-pill-text: rgba(226,232,240,0.9);
       color-scheme: dark;
     }
 
@@ -46,6 +51,11 @@
       --shadow-card: 0 25px 60px rgba(0,0,0,.1);
       --orb-blue: rgba(14,165,233,.06);
       --orb-pink: rgba(219,39,119,.04);
+      --logo-wall-bg: rgba(255,255,255,0.72);
+      --logo-wall-border: rgba(148,163,184,0.24);
+      --logo-pill-bg: rgba(255,255,255,0.88);
+      --logo-pill-border: rgba(148,163,184,0.2);
+      --logo-pill-text: rgba(30,41,59,0.88);
       color-scheme: light;
     }
 
@@ -284,10 +294,121 @@
       transform: translateY(-2px);
       box-shadow: 0 14px 34px rgba(56, 189, 248, 0.3);
     }
+
+    /* ── Logo wall ─────────────────────────────────────── */
+    .logo-wall {
+      margin-top: 1.75rem;
+      position: relative;
+      z-index: 1;
+      padding: 1rem 0 0.35rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .logo-wall-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(125,211,252,0.08);
+      border: 1px solid rgba(125,211,252,0.14);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .logo-wall-label .sparkle {
+      font-size: 0.9rem;
+    }
+    .logo-marquee {
+      position: relative;
+      overflow: hidden;
+      margin-top: 1rem;
+      padding: 0.8rem 0;
+      border-radius: 18px;
+      background: var(--logo-wall-bg);
+      border: 1px solid var(--logo-wall-border);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .logo-marquee::before,
+    .logo-marquee::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 72px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .logo-marquee::before {
+      left: 0;
+      background: linear-gradient(90deg, var(--card) 0%, rgba(0,0,0,0) 100%);
+    }
+    .logo-marquee::after {
+      right: 0;
+      background: linear-gradient(270deg, var(--card) 0%, rgba(0,0,0,0) 100%);
+    }
+    .logo-track {
+      display: flex;
+      width: max-content;
+      animation: logo-scroll 24s linear infinite;
+      will-change: transform;
+    }
+    .logo-marquee:hover .logo-track {
+      animation-play-state: paused;
+    }
+    .logo-item {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      margin: 0 0.55rem;
+      padding: 0.8rem 1.1rem;
+      min-width: 168px;
+      border-radius: 999px;
+      border: 1px solid var(--logo-pill-border);
+      background: var(--logo-pill-bg);
+      color: var(--logo-pill-text);
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      box-shadow: 0 10px 24px rgba(15,23,42,0.08);
+      white-space: nowrap;
+    }
+    .logo-item .mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.9rem;
+      height: 1.9rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(125,211,252,0.2), rgba(244,114,182,0.18));
+      font-size: 1rem;
+    }
+    @keyframes logo-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .logo-track {
+        animation: none;
+      }
+    }
     @media (max-width: 500px) {
       .teasers { grid-template-columns: 1fr; }
       .card { padding: 2rem 1.5rem; }
       h1 { font-size: 2rem; }
+      .logo-marquee::before,
+      .logo-marquee::after {
+        width: 40px;
+      }
+      .logo-item {
+        min-width: 148px;
+        padding: 0.72rem 1rem;
+        font-size: 0.86rem;
+      }
     }
     .teaser {
       background: rgba(255,255,255,0.08);
@@ -399,6 +520,26 @@
           <div class="icon">🚀</div>
           <div class="title">Continuous</div>
           <div class="desc">New ideas land here. Check the board to see what's cooking.</div>
+        </div>
+      </div>
+
+      <div class="logo-wall" aria-label="Scrolling logo wall of project collaborators and customer vibes">
+        <div class="logo-wall-label"><span class="sparkle">✨</span> Built with teams & tools people trust</div>
+        <div class="logo-marquee">
+          <div class="logo-track">
+            <div class="logo-item"><span class="mark">🧠</span><span>OpenClaw</span></div>
+            <div class="logo-item"><span class="mark">🐙</span><span>GitHub</span></div>
+            <div class="logo-item"><span class="mark">📋</span><span>Trello</span></div>
+            <div class="logo-item"><span class="mark">⚡</span><span>Fast feedback</span></div>
+            <div class="logo-item"><span class="mark">🤝</span><span>Happy testers</span></div>
+            <div class="logo-item"><span class="mark">🚀</span><span>Launch-ready ideas</span></div>
+            <div class="logo-item"><span class="mark">🧠</span><span>OpenClaw</span></div>
+            <div class="logo-item"><span class="mark">🐙</span><span>GitHub</span></div>
+            <div class="logo-item"><span class="mark">📋</span><span>Trello</span></div>
+            <div class="logo-item"><span class="mark">⚡</span><span>Fast feedback</span></div>
+            <div class="logo-item"><span class="mark">🤝</span><span>Happy testers</span></div>
+            <div class="logo-item"><span class="mark">🚀</span><span>Launch-ready ideas</span></div>
+          </div>
         </div>
       </div>
 
