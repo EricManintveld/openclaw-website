@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data &amp; AI Day · Sam's Playground</title>
+  <script src="theme.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root,
+    [data-theme="dark"] {
+      --bg: #0f0f1a;
+      --card: #1a1a2e;
+      --card-soft: rgba(255,255,255,0.03);
+      --accent: #7dd3fc;
+      --accent-glow: #38bdf8;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #334155;
+      --green: #4ade80;
+      --pink: #f472b6;
+      --yellow: #facc15;
+      --purple: #a78bfa;
+      --toggle-bg: rgba(255,255,255,.07);
+      --toggle-border: rgba(255,255,255,.12);
+      --shadow-card: 0 25px 60px rgba(0,0,0,.4);
+      --orb-blue: rgba(56,189,248,.08);
+      --orb-pink: rgba(244,114,182,.06);
+      color-scheme: dark;
+    }
+
+    [data-theme="light"] {
+      --bg: #f0f4ff;
+      --card: #ffffff;
+      --card-soft: rgba(15,23,42,0.03);
+      --accent: #0284c7;
+      --accent-glow: #0ea5e9;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --green: #16a34a;
+      --pink: #db2777;
+      --yellow: #ca8a04;
+      --purple: #7c3aed;
+      --toggle-bg: rgba(0,0,0,.05);
+      --toggle-border: rgba(0,0,0,.1);
+      --shadow-card: 0 25px 60px rgba(0,0,0,.1);
+      --orb-blue: rgba(14,165,233,.06);
+      --orb-pink: rgba(219,39,119,.04);
+      color-scheme: light;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top, rgba(125,211,252,0.08), transparent 28%), var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.25rem;
+      z-index: 999;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--toggle-bg);
+      border: 1px solid var(--toggle-border);
+      color: var(--text);
+      font-size: 1.3rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.3s ease, background 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease;
+    }
+    .theme-toggle:hover { transform: scale(1.08); box-shadow: 0 4px 20px rgba(0,0,0,.15); }
+    .theme-toggle .icon-sun,
+    .theme-toggle .icon-moon { position: absolute; transition: opacity 0.3s ease, transform 0.4s ease; }
+    [data-theme="dark"] .theme-toggle .icon-sun { opacity: 1; transform: rotate(0deg) scale(1); }
+    [data-theme="dark"] .theme-toggle .icon-moon { opacity: 0; transform: rotate(90deg) scale(0.6); }
+    [data-theme="light"] .theme-toggle .icon-sun { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+    [data-theme="light"] .theme-toggle .icon-moon { opacity: 1; transform: rotate(0deg) scale(1); }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb.blue { width: 420px; height: 420px; background: var(--orb-blue); top: -120px; right: -120px; }
+    .orb.pink { width: 320px; height: 320px; background: var(--orb-pink); bottom: -90px; left: -90px; }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 5rem 1.5rem 4rem;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .back-link,
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .back-link:hover,
+    .nav-link:hover { text-decoration: underline; }
+
+    .hero,
+    .section-card,
+    .quote-card,
+    .agenda-card,
+    .takeaway-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .section-card::before,
+    .quote-card::before,
+    .agenda-card::before,
+    .takeaway-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(125,211,252,0.08), transparent 42%),
+                  radial-gradient(circle at bottom right, rgba(244,114,182,0.08), transparent 38%);
+      pointer-events: none;
+    }
+
+    .hero {
+      padding: 3rem;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: clamp(2.3rem, 4vw, 3.8rem);
+      line-height: 1.03;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-copy,
+    .section-copy,
+    .agenda-copy,
+    .takeaway-copy,
+    .meta,
+    .quote-card p,
+    .list li {
+      color: var(--muted);
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-copy { max-width: 680px; font-size: 1.08rem; }
+
+    .pill-row,
+    .meta-row,
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pill,
+    .meta-pill,
+    .tag {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.48rem 0.85rem;
+      font-size: 0.85rem;
+      background: var(--card-soft);
+    }
+
+    .hero-panel {
+      background: linear-gradient(180deg, rgba(125,211,252,0.12), rgba(167,139,250,0.08));
+      border: 1px solid rgba(125,211,252,0.18);
+      border-radius: 24px;
+      padding: 1.5rem;
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 1rem;
+      align-content: start;
+    }
+
+    .hero-panel h2,
+    .section-card h2,
+    .agenda-card h3,
+    .takeaway-card h3,
+    .quote-card h3 {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 0.6rem;
+    }
+
+    .hero-panel h2,
+    .section-card h2 { font-size: 1.4rem; }
+
+    .hero-panel .signal {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.9rem 1rem;
+      background: rgba(15,23,42,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+    }
+
+    .signal-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 1.2rem;
+      background: rgba(125,211,252,0.14);
+    }
+
+    .signal strong {
+      display: block;
+      margin-bottom: 0.15rem;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .section-card {
+      padding: 2rem;
+    }
+
+    .quote-grid,
+    .agenda-grid,
+    .takeaway-grid {
+      display: grid;
+      gap: 1rem;
+      position: relative;
+      z-index: 1;
+      margin-top: 1.2rem;
+    }
+
+    .quote-card,
+    .agenda-card,
+    .takeaway-card {
+      padding: 1.3rem;
+      background: var(--card-soft);
+      border-radius: 22px;
+    }
+
+    .quote-card p {
+      font-size: 1rem;
+    }
+
+    .quote-card span,
+    .small-label {
+      display: inline-block;
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+      position: relative;
+      z-index: 1;
+    }
+
+    .list {
+      margin-top: 1rem;
+      padding-left: 1.1rem;
+      display: grid;
+      gap: 0.7rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1.2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat {
+      padding: 1rem;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: var(--card-soft);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.6rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 1rem;
+      padding: 1rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .timeline-item:first-child { border-top: none; padding-top: 0; }
+
+    .time {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero,
+      .content-grid { grid-template-columns: 1fr; }
+      .stats-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      .page { padding-top: 4.5rem; }
+      .hero,
+      .section-card { padding: 1.5rem; }
+      .stats-strip { grid-template-columns: 1fr; }
+      .timeline-item { grid-template-columns: 1fr; gap: 0.35rem; }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" title="Switch to light mode">
+    <span class="icon-sun">☀️</span>
+    <span class="icon-moon">🌙</span>
+  </button>
+
+  <div class="orb blue"></div>
+  <div class="orb pink"></div>
+
+  <main class="page">
+    <div class="topbar">
+      <a class="back-link" href="index.html">← Back to playground</a>
+      <a class="nav-link" href="how-it-works.html">See how pages get shipped →</a>
+    </div>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">📊 Event recap</div>
+        <h1>Data &amp; AI Day</h1>
+        <p class="hero-copy">A ready-to-share event page for a day full of presentations, notes, and inspiration. This version is intentionally lightweight, but the structure is in place for real speaker details, slides, photos, or follow-up resources later.</p>
+        <div class="pill-row" style="margin-top:1.2rem;">
+          <span class="pill">Presentations</span>
+          <span class="pill">Ideas worth revisiting</span>
+          <span class="pill">Follow-up ready</span>
+        </div>
+        <div class="stats-strip">
+          <div class="stat">
+            <strong>6</strong>
+            <span class="meta">Sample sessions highlighted</span>
+          </div>
+          <div class="stat">
+            <strong>1</strong>
+            <span class="meta">Day captured in one page</span>
+          </div>
+          <div class="stat">
+            <strong>∞</strong>
+            <span class="meta">Ideas to turn into experiments</span>
+          </div>
+          <div class="stat">
+            <strong>Ready</strong>
+            <span class="meta">For real content whenever needed</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="hero-panel">
+        <div>
+          <h2>What this page is for</h2>
+          <p class="meta">A clean event landing page that can hold summaries, agendas, speaker notes, and future links without needing a redesign.</p>
+        </div>
+        <div class="signal">
+          <div class="signal-icon">🎤</div>
+          <div>
+            <strong>Presentation-ready layout</strong>
+            <div class="meta">Hero, schedule, highlights, quotes, and takeaways.</div>
+          </div>
+        </div>
+        <div class="signal">
+          <div class="signal-icon">🧠</div>
+          <div>
+            <strong>Works with placeholder content</strong>
+            <div class="meta">The content is intentionally generic, but the sections are production-ready.</div>
+          </div>
+        </div>
+        <div class="meta-row">
+          <span class="meta-pill">Theme toggle included</span>
+          <span class="meta-pill">Mobile responsive</span>
+        </div>
+      </aside>
+    </section>
+
+    <div class="content-grid">
+      <section class="section-card">
+        <div class="eyebrow">🗓️ Example agenda</div>
+        <h2>A simple flow for the day</h2>
+        <p class="section-copy">This section gives the page a believable event rhythm. It can later be swapped with the actual talk schedule, speaker names, and links to materials.</p>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="time">09:00</div>
+            <div>
+              <h3>Welcome &amp; opening notes</h3>
+              <p class="agenda-copy">A short kickoff framing the themes of the day: data culture, practical AI, and what teams can adopt next.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="time">10:00</div>
+            <div>
+              <h3>Presentation: from raw data to decisions</h3>
+              <p class="agenda-copy">An example session block for analytics pipelines, dashboards, and making insights easier to trust and use.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="time">11:30</div>
+            <div>
+              <h3>Presentation: AI in everyday workflows</h3>
+              <p class="agenda-copy">A placeholder for demos showing where copilots, automations, and assistants create real leverage.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="time">14:00</div>
+            <div>
+              <h3>Lightning talks &amp; experiments</h3>
+              <p class="agenda-copy">Space for short talks, prototypes, or internal teams sharing quick wins and lessons learned.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <div class="eyebrow">✨ Highlights</div>
+        <h2>Good sections to keep</h2>
+        <div class="quote-grid">
+          <article class="quote-card">
+            <h3>Quote block</h3>
+            <p>“The best AI ideas start with a clear problem, not a shiny demo.”</p>
+            <span>Sample takeaway</span>
+          </article>
+          <article class="quote-card">
+            <h3>Reflection</h3>
+            <p>Use this area for recurring themes, standout moments, or a few sentences about what people learned during the event.</p>
+            <span>Recap-ready</span>
+          </article>
+        </div>
+
+        <ul class="list">
+          <li>Room for speaker names, companies, and presentation topics.</li>
+          <li>Easy place to link slides, recordings, or follow-up documents.</li>
+          <li>Can double as an internal event recap or a public-facing summary page.</li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="section-card">
+      <div class="eyebrow">🧩 Content blocks</div>
+      <h2>Sections already prepared for future edits</h2>
+      <p class="section-copy">If someone wants to turn this into a fuller event recap later, the page already has enough structure to grow without changing the visual language of the site.</p>
+
+      <div class="agenda-grid">
+        <article class="agenda-card">
+          <span class="small-label">01 · Speaker cards</span>
+          <h3>Add presenters fast</h3>
+          <p class="agenda-copy">Swap in real names, talk titles, headshots, and links to profiles or decks.</p>
+        </article>
+        <article class="agenda-card">
+          <span class="small-label">02 · Session summaries</span>
+          <h3>Capture what mattered</h3>
+          <p class="agenda-copy">Keep short summaries of what each presentation covered and why it was useful.</p>
+        </article>
+        <article class="agenda-card">
+          <span class="small-label">03 · Resources</span>
+          <h3>Collect slides and links</h3>
+          <p class="agenda-copy">Use this area for documents, code repos, reading lists, or next-step actions.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-card" style="margin-top:1.75rem;">
+      <div class="eyebrow">🚀 Next steps</div>
+      <h2>What could be added later</h2>
+      <div class="takeaway-grid">
+        <article class="takeaway-card">
+          <h3>Photo gallery</h3>
+          <p class="takeaway-copy">Drop in event photos or screenshots to make the page feel more alive.</p>
+        </article>
+        <article class="takeaway-card">
+          <h3>Embedded recordings</h3>
+          <p class="takeaway-copy">If talks were recorded, this layout has enough space to add video embeds or watch links.</p>
+        </article>
+        <article class="takeaway-card">
+          <h3>Call to action</h3>
+          <p class="takeaway-copy">Invite people to attend the next event, contact the team, or browse related experiments.</p>
+        </article>
+      </div>
+      <div class="tag-row" style="margin-top:1.25rem;">
+        <span class="tag">Data storytelling</span>
+        <span class="tag">AI experiments</span>
+        <span class="tag">Event recap</span>
+        <span class="tag">Page scaffold complete</span>
+      </div>
+    </section>
+
+    <footer>
+      Built as a ready-to-fill event page for Sam's Playground.
+    </footer>
+  </main>
+</body>
+</html>
