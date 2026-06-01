@@ -280,6 +280,62 @@
       padding: 2rem;
     }
 
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 1.5rem;
+      margin: 1.2rem 0 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .demo-panel {
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 1.4rem;
+      background: var(--card-soft);
+    }
+
+    .demo-panel h3 {
+      margin-bottom: 0.55rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .demo-points {
+      list-style: none;
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .demo-points li {
+      color: var(--muted);
+      line-height: 1.65;
+      padding-left: 1.4rem;
+      position: relative;
+    }
+
+    .demo-points li::before {
+      content: "✦";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .demo-callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(125,211,252,0.22);
+      background: linear-gradient(180deg, rgba(125,211,252,0.12), rgba(167,139,250,0.08));
+      margin-top: 1rem;
+      color: var(--text);
+    }
+
     .quote-grid,
     .agenda-grid,
     .takeaway-grid {
@@ -377,7 +433,8 @@
 
     @media (max-width: 900px) {
       .hero,
-      .content-grid { grid-template-columns: 1fr; }
+      .content-grid,
+      .demo-grid { grid-template-columns: 1fr; }
       .stats-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
@@ -524,6 +581,40 @@
     </div>
 
     <section class="section-card">
+      <div class="eyebrow">🎬 Featured demo</div>
+      <h2>The live demo Sam and Alexei are giving</h2>
+      <p class="section-copy">This page now calls out the session Sam and Alexei are presenting together: a practical demo focused on showing what data and AI look like when they are useful in real workflows, not just impressive in isolation.</p>
+
+      <div class="demo-grid">
+        <article class="demo-panel">
+          <span class="small-label">On stage</span>
+          <h3>A grounded, practical walkthrough</h3>
+          <p class="agenda-copy">The demo section frames their session as a hands-on story: starting with a business problem, moving through the data needed to understand it, and ending with AI helping people act faster and with more confidence.</p>
+
+          <ul class="demo-points">
+            <li>Show how solid data foundations make AI outputs more trustworthy and easier to use.</li>
+            <li>Walk through a realistic workflow instead of disconnected feature snapshots.</li>
+            <li>Highlight the kind of team collaboration needed to turn ideas into something people can actually adopt.</li>
+          </ul>
+        </article>
+
+        <article class="demo-panel">
+          <span class="small-label">Why it matters</span>
+          <h3>Built to feel relevant for the audience</h3>
+          <p class="agenda-copy">Rather than treating AI as magic, this section makes the session feel approachable and credible. It gives visitors a clear sense of what Sam and Alexei are demonstrating and why it is worth paying attention to.</p>
+
+          <div class="demo-callout"><strong>Session focus:</strong> practical data + AI, a live walkthrough, and clear examples of how the pieces connect from insight to action.</div>
+
+          <div class="tag-row" style="margin-top:1rem;">
+            <span class="tag">Sam &amp; Alexei</span>
+            <span class="tag">Live demo</span>
+            <span class="tag">Practical AI</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-card" style="margin-top:1.75rem;">
       <div class="eyebrow">🧩 Content blocks</div>
       <h2>Sections already prepared for future edits</h2>
       <p class="section-copy">If someone wants to turn this into a fuller event recap later, the page already has enough structure to grow without changing the visual language of the site.</p>
